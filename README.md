@@ -12,4 +12,17 @@ Generic Python REST ORM. Inspired by Django. Powered by Requests.
 *Coming soon*
 
 # Usage
-*Coming soon*
+
+```
+>>> from pyrestorm.models import RestModel
+
+>>> class Post(RestModel):
+>>>     url = 'http://jsonplaceholder.typicode.com/posts'
+
+>>>     def __repr__(self):
+>>>         return '%s - %s' % (self.id, self.title)
+
+>>> posts = Post.objects.all()
+>>> print posts[0]
+1 - sunt aut facere repellat provident occaecati excepturi optio reprehenderit
+```

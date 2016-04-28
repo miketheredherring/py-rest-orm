@@ -1,5 +1,7 @@
-from pyrestorm.client import RestClient
+import six
+
 from pyrestorm.exceptions import orm as orm_exceptions
+from pyrestorm.query import RestQueryset
 
 
 class RestOrmManager(object):
@@ -12,35 +14,32 @@ class RestOrmManager(object):
     def contribute_to_class(self, cls):
         self.model = cls
 
+    def _get_queryset(self):
+        return RestQueryset(self.model)
+
     def all(self, *args, **kwargs):
-        response = self.model.client.get(self.model.url)
-        items = []
-        for item in response:
-            items.append(self.model(data=item))
-
-        return items
+        return self._get_queryset()
 
 
-class RestModel(object):
-    # Root URL for REST model
-    url = None
-
-    def __new__(cls, *args, **kwargs):
-        ret = super(RestModel, cls).__new__(cls, *args, **kwargs)
+class RestModelMeta(type):
+    def __new__(cls, name, bases, attrs):
+        new_class = super(RestModelMeta, cls).__new__(cls, name, bases, attrs)
 
         # Make sure the proper fields are overriden
-        if cls.url is None:
+        if name != 'RestModel' and attrs.get('url') is None:
             raise NotImplementedError('`url` must be declared when inheriting `RestModel`')
 
-        # Create a new client
-        cls.client = RestClient()
-
         # Make links to children if they ask for it, shamelessly stolen from Django
-        for attr in [attr for attr in dir(cls) if not callable(attr) and not attr.startswith('__')]:
-            if hasattr(getattr(cls, attr), 'contribute_to_class'):
-                getattr(cls, attr).contribute_to_class(cls)
+        for attr in [attr for attr in dir(new_class) if not callable(attr) and not attr.startswith('__')]:
+            if hasattr(getattr(new_class, attr), 'contribute_to_class'):
+                getattr(new_class, attr).contribute_to_class(new_class)
 
-        return ret
+        return new_class
+
+
+class RestModel(six.with_metaclass(RestModelMeta)):
+    # Root URL for REST model
+    url = None
 
     def __init__(self, *args, **kwargs):
         data = kwargs.pop('data', {})

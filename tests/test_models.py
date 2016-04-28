@@ -7,12 +7,17 @@ class TestModel(RestModel):
     url = 'http://jsonplaceholder.typicode.com/posts'
 
 
+def create_bad_restmodel():
+    class BadTestModel(RestModel):
+        pass
+
+
 class RestModelTestCase(TestCase):
     def test_restmodel_invalid_url(self):
-        self.assertRaises(NotImplementedError, RestModel)
+        self.assertRaises(NotImplementedError, create_bad_restmodel)
 
     def test_restmodel(self):
-        instance = TestModel()
+        TestModel()
 
     def test_restmodel_nested(self):
         instance = TestModel(
