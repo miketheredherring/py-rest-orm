@@ -1,3 +1,6 @@
+# HTTP Class Exceptions
+
+
 class ServerErrorException(Exception):
     # HTTP 500
     pass
@@ -13,7 +16,7 @@ class PermissionDeniedException(Exception):
     pass
 
 
-class AuthenticationException(Exception):
+class AuthorizationException(Exception):
     # HTTP 401
     pass
 

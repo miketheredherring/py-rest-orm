@@ -1,11 +1,11 @@
 import json
 import requests
 
-from exceptions import (
+from exceptions.http import (
     ServerErrorException,
     NotFoundException,
     PermissionDeniedException,
-    AuthenticationException,
+    AuthorizationException,
     BadRequestException
 )
 
@@ -55,7 +55,7 @@ class RestClient(object):
         elif status_code == StatusCodes.HTTP_PERMISSION_DENIED:
             raise PermissionDeniedException
         elif status_code == StatusCodes.HTTP_UNAUTHORIZED:
-            raise AuthenticationException
+            raise AuthorizationException
         elif status_code == StatusCodes.HTTP_BAD_REQUEST:
             raise BadRequestException
 

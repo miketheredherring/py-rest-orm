@@ -19,11 +19,11 @@ class RestClientTestCase(TestCase):
 
     def test_raises_exception(self):
         exs = (
-            (500, exceptions.ServerErrorException),
-            (404, exceptions.NotFoundException),
-            (403, exceptions.PermissionDeniedException),
-            (401, exceptions.AuthenticationException),
-            (400, exceptions.BadRequestException),
+            (500, exceptions.http.ServerErrorException),
+            (404, exceptions.http.NotFoundException),
+            (403, exceptions.http.PermissionDeniedException),
+            (401, exceptions.http.AuthorizationException),
+            (400, exceptions.http.BadRequestException),
         )
 
         client = RestClient()
