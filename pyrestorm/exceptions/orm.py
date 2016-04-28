@@ -6,3 +6,8 @@ class RestFailure(Exception):
 class DoesNotExist(RestFailure):
     # Object matching GET query does not exist
     pass
+
+
+class MultipleObjectsReturned(RestFailure):
+    # Multiple objects matched GET query
+    pass

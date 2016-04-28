@@ -8,7 +8,7 @@ class TestModel(RestModel):
     url = 'http://jsonplaceholder.typicode.com/posts'
 
 
-class RestModelTestCase(TestCase):
+class RestQuerysetTestCase(TestCase):
     def test_init(self):
         RestQueryset(TestModel)
 
