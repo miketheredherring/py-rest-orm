@@ -63,7 +63,7 @@ class RestQueryset(object):
             self._count = 0
 
             # While we don't have all the data we need, fetch
-            self._paginator.cursor(start)
+            self._paginator.cursor(start, limit=(end if end is None else (end - start)))
             fetch = True
             while fetch:
                 # Retrieve data from the server

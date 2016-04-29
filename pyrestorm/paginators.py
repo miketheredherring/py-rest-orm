@@ -19,7 +19,7 @@ class RestPaginator(object):
         raise NotImplementedError
 
     # Moves the cursor to a specified position in the queryset
-    def cursor(self, *args):
+    def cursor(self, *args, **kwargs):
         position = 0
         # Check for the 'required' position argument
         if len(args) == 1 and args[0] >= 0:
@@ -32,6 +32,7 @@ class RestPaginator(object):
 class DjangoRestFrameworkLimitOffsetPaginator(RestPaginator):
     def __init__(self, limit=20, **kwargs):
         # Parameter renaming
+        self.limit = None
         return super(DjangoRestFrameworkLimitOffsetPaginator, self).__init__(page_size=limit, **kwargs)
 
     # Retrieved is meant to educate the paginator on the amunt of results retrieved last request
@@ -62,10 +63,14 @@ class DjangoRestFrameworkLimitOffsetPaginator(RestPaginator):
 
         return ret
 
+    def cursor(self, *args, **kwargs):
+        super(DjangoRestFrameworkLimitOffsetPaginator, self).cursor(*args, **kwargs)
+        self.limit = kwargs.get('limit', self.limit)
+
     # Dictionary of URL params for pagination
     def as_params(self):
         return {
-            'limit': unicode(self.page_size),
+            'limit': unicode(self.limit or self.page_size),
             'offset': unicode(self.position)
         }
 
