@@ -32,7 +32,6 @@ class RestPaginator(object):
 class DjangoRestFrameworkLimitOffsetPaginator(RestPaginator):
     def __init__(self, limit=20, **kwargs):
         # Parameter renaming
-        self.limit = None
         return super(DjangoRestFrameworkLimitOffsetPaginator, self).__init__(page_size=limit, **kwargs)
 
     # Retrieved is meant to educate the paginator on the amunt of results retrieved last request
@@ -65,12 +64,12 @@ class DjangoRestFrameworkLimitOffsetPaginator(RestPaginator):
 
     def cursor(self, *args, **kwargs):
         super(DjangoRestFrameworkLimitOffsetPaginator, self).cursor(*args, **kwargs)
-        self.limit = kwargs.get('limit', self.limit)
+        self.page_size = kwargs.get('limit', self.page_size)
 
     # Dictionary of URL params for pagination
     def as_params(self):
         return {
-            'limit': unicode(self.limit or self.page_size),
+            'limit': unicode(self.page_size),
             'offset': unicode(self.position)
         }
 

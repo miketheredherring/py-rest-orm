@@ -1,27 +1,7 @@
 import six
 
 from pyrestorm.exceptions import orm as orm_exceptions
-from pyrestorm.query import RestQueryset
-
-
-class RestOrmManager(object):
-    # Ensure the objects is only available at the class level
-    def __get__(self, instance, cls=None):
-        if instance is not None:
-            raise AttributeError('`RestOrmManager` isn\'t accessible via `%s` instances' % cls.__name__)
-        return self
-
-    # Since the OrmManager instance is instantiated on the RestModel, this allows us to know the parent class
-    def contribute_to_class(self, cls):
-        self.model = cls
-
-    # Returns a new instance of the RestQueryset
-    def _get_queryset(self):
-        return RestQueryset(self.model)
-
-    # Return RestQueryset for all elements
-    def all(self, *args, **kwargs):
-        return self._get_queryset()
+from pyrestorm.manager import RestOrmManager
 
 
 class RestModelBase(type):

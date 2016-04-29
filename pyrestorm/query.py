@@ -43,6 +43,7 @@ class RestQueryset(object):
     def __len__(self):
         return len(self._evaluate())
 
+    # Unpaginated API results, only stale once
     def _fetch(self):
         # Only perform a query if the data is stale
         if self._stale:
@@ -103,3 +104,7 @@ class RestQueryset(object):
 
         # Returns unpaginated results
         return self._fetch()
+
+    ''' Public API Contract '''
+    def all(self, *args, **kwargs):
+        return self
