@@ -5,9 +5,6 @@ from pyrestorm import exceptions
 
 
 class RestClientTestCase(TestCase):
-    def setUp(self):
-        pass
-
     def test_request_valid_method(self):
         client = RestClient()
         response = client.request('GET', 'http://jsonplaceholder.typicode.com/posts/1')

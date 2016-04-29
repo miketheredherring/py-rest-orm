@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pyrestorm.paginator import DjangoRestFrameworkLimitOffsetPaginator, RestPaginator
+from pyrestorm.paginators import DjangoRestFrameworkLimitOffsetPaginator, RestPaginator
 
 
 class RestPaginatorTestCase(TestCase):
@@ -29,7 +29,7 @@ class DjangoRestFrameworkPaginatorTestCase(TestCase):
         paginator = DjangoRestFrameworkLimitOffsetPaginator(limit=30)
         self.assertTrue(paginator.next())
         self.assertEqual(paginator.position, 30)
-        paginator.count = 50
+        paginator.max = 50
         self.assertFalse(paginator.next())
 
     def test_djangorestpaginator_prev(self):
