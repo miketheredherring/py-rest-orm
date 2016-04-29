@@ -26,3 +26,19 @@ Generic Python REST ORM. Inspired by Django. Powered by Requests.
 >>> print posts[0]
 1 - sunt aut facere repellat provident occaecati excepturi optio reprehenderit
 ```
+
+```
+>>> from pyrestorm.models import RestModel
+>>> from pyrestorm.paginators import DjangoRestFrameworkLimitOffsetPaginator
+
+>>> class Gene(RestModel):
+>>>     url = 'https://api.genepeeks.com/genes/'
+>>>     paginator_class = DjangoRestFrameworkLimitOffsetPaginator
+
+>>>     def __repr__(self):
+>>>         return '%s [%s:%s]' % (self.slug, self.start, self.end)
+
+>>> genes = Gene.objects.all()
+>>> print genes[0]
+RPH3AL [62293:236045]
+```
