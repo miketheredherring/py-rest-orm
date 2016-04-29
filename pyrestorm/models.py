@@ -24,11 +24,24 @@ class RestOrmManager(object):
         return self._get_queryset()
 
 
-class RestModelMeta(type):
+class RestModelBase(type):
     # Called when class is imported got guarantee proper setup of child classes to parent
     def __new__(cls, name, bases, attrs):
         # Call to super
-        new_class = super(RestModelMeta, cls).__new__(cls, name, bases, attrs)
+        super_new = super(RestModelBase, cls).__new__
+
+        # Also ensure initialization is only performed for subclasses of Model
+        # (excluding Model class itself).
+        parents = [b for b in bases if isinstance(b, RestModelBase)]
+        if not parents:
+            return super_new(cls, name, bases, attrs)
+
+        # Create the current class
+        new_class = super_new(cls, name, bases, {'__module__': attrs.pop('__module__')})
+        new_class._meta = attrs.pop('Meta', None)
+
+        # Instantiate the manager instance
+        new_class.objects = new_class.objects()
 
         # Make links to children if they ask for it, shamelessly stolen from Django
         for attr in [attr for attr in dir(new_class) if not callable(attr) and not attr.startswith('__')]:
@@ -38,19 +51,17 @@ class RestModelMeta(type):
         return new_class
 
 
-class RestModel(six.with_metaclass(RestModelMeta)):
+class RestModel(six.with_metaclass(RestModelBase)):
     # Bind the JSON data from a response to a new instance of the model
     def __init__(self, *args, **kwargs):
         data = kwargs.pop('data', {})
-        ret = super(RestModel, self).__init__(*args, **kwargs)
+        super(RestModel, self).__init__()
 
         # Bind data to the model
         self._bind_data(self, data)
 
-        return ret
-
     # Manager to act like Django ORM
-    objects = RestOrmManager()
+    objects = RestOrmManager
 
     # Defines shortcut for exceptions
     DoesNotExist = orm_exceptions.DoesNotExist

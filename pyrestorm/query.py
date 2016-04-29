@@ -19,8 +19,8 @@ class RestQueryset(object):
         # What RestModel does this queryset belong to?
         self.model = model
         # Paginator instance for assisted navigation logic with API
-        if hasattr(model, 'paginator_class'):
-            self._paginator = model.paginator_class()
+        if hasattr(model._meta, 'paginator_class'):
+            self._paginator = model._meta.paginator_class()
         # REST Client for performing API calls
         self.client = RestClient()
 
@@ -36,9 +36,6 @@ class RestQueryset(object):
         # If it is a single element, fetch just that
         elif isinstance(value, int):
             self._data = self._evaluate(value, value + 1)[0]
-        # Otherwise we want the unbounded results
-        else:
-            self._evaluate()
 
         return self._data
 
@@ -49,7 +46,7 @@ class RestQueryset(object):
     def _fetch(self):
         # Only perform a query if the data is stale
         if self._stale:
-            response = self.client.get(self.model.url)
+            response = self.client.get(self.model._meta.url)
             self._data = [self.model(data=item) for item in response]
             self._count = len(self._data)
             self._stale = False
@@ -70,7 +67,7 @@ class RestQueryset(object):
             fetch = True
             while fetch:
                 # Retrieve data from the server
-                response = self.client.get('%s?%s' % (self.model.url, self._paginator.as_url()))
+                response = self.client.get('%s?%s' % (self.model._meta.url, self._paginator.as_url()))
 
                 # Attempt to grab the size of the dataset from the usual place
                 self._paginator.max = response.get('count', None)

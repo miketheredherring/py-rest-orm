@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from pyrestorm.query import RestQueryset
 
-from .models import Post
+from .models import Post, Gene
 
 
 class RestQuerysetTestCase(TestCase):
@@ -34,5 +34,13 @@ class RestQuerysetTestCase(TestCase):
 
 class RestPaginatedQuerysetTestCase(TestCase):
     def test_init(self):
-        # RestQueryset(PaginatedQueryTestModel)[0:5]
-        pass
+        RestQueryset(Gene)
+
+    def test_slice(self):
+        RestQueryset(Gene)[0:5]
+
+    def test_evaluate_invalid_bounds(self):
+        queryset = RestQueryset(Gene)
+        self.assertRaises(ValueError, queryset.__getitem__, slice(5, 3))
+        queryset._paginator.max = 10
+        self.assertRaises(ValueError, queryset.__getitem__, 11)
