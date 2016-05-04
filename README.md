@@ -13,6 +13,7 @@ Generic Python REST ORM. Inspired by Django. Powered by Requests.
 
 # Usage
 
+Unpaginated API
 ```
 >>> from pyrestorm.models import RestModel
 
@@ -27,6 +28,7 @@ Generic Python REST ORM. Inspired by Django. Powered by Requests.
 1 - sunt aut facere repellat provident occaecati excepturi optio reprehenderit
 ```
 
+Paginated API With Filtering
 ```
 >>> from pyrestorm.models import RestModel
 >>> from pyrestorm.paginators import DjangoRestFrameworkLimitOffsetPaginator
@@ -41,4 +43,14 @@ Generic Python REST ORM. Inspired by Django. Powered by Requests.
 >>> genes = Gene.objects.all()
 >>> print genes[0]
 RPH3AL [62293:236045]
+
+>>> gene = Gene.objects.get(name='PEX10')
+>>> print gene
+PEX10 [2336236:2345236]
+
+>>> Gene.objects.get(name__icontains='PEX')
+raise Gene.MultipleObjectsReturned
+
+>>> Gene.objects.get(name='PEXCFTR')
+raise Gene.DoesNotExist
 ```

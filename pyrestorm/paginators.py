@@ -40,7 +40,7 @@ class DjangoRestFrameworkLimitOffsetPaginator(RestPaginator):
         # If we don't know how many records there are, and we retrieved a full page last request, next could exist
         # Or if advancing doesn't bring us past the known end
         if (self.max is None and (retrieved is None or retrieved == self.page_size)) or \
-           (self.position + self.page_size <= self.max):
+           (self.page_size is not None and self.position + self.page_size <= self.max):
             self.position += self.page_size
         # We can't move
         else:
@@ -68,10 +68,10 @@ class DjangoRestFrameworkLimitOffsetPaginator(RestPaginator):
 
     # Dictionary of URL params for pagination
     def as_params(self):
-        return {
-            'limit': unicode(self.page_size),
-            'offset': unicode(self.position)
-        }
+        params = {'offset': unicode(self.position)}
+        if self.page_size is not None:
+            params['limit'] = unicode(self.page_size)
+        return params
 
     # Turn the data structure into a url
     def as_url(self):

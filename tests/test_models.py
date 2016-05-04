@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from .models import Post
+from .models import Post, Gene
 
 
 class RestModelTestCase(TestCase):
@@ -22,6 +22,16 @@ class RestModelTestCase(TestCase):
     def test_restmodel_all(self):
         instances = Post.objects.all()
         self.assertEqual(len(instances), 100)
+
+    def test_restmodel_get(self):
+        gene = Gene.objects.get(name='PEX10')
+        self.assertEqual(gene.name, 'PEX10')
+
+    def test_restmodel_get_doesnotexist(self):
+        self.assertRaises(Gene.DoesNotExist, Gene.objects.get, name='PEXCFTR')
+
+    def test_restmodel_get_multipleobjectreturned(self):
+        self.assertRaises(Gene.MultipleObjectsReturned, Gene.objects.get, name__icontains='PEX')
 
     def test_restormmanager_get_on_instance(self):
         instance = Post()

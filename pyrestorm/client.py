@@ -1,5 +1,6 @@
 import json
 import requests
+import urllib
 
 from exceptions.http import (
     ServerErrorException,
@@ -69,6 +70,9 @@ class RestClient(object):
         return ret
 
     def get(self, url, *args, **kwargs):
+        # If the user provided kwargs, append them to the url
+        if kwargs:
+            url += '?%s' % urllib.urlencode(kwargs)
         return self.request('GET', url)
 
     def post(self, url, data, *args, **kwargs):

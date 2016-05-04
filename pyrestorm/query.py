@@ -14,6 +14,8 @@ class RestQueryset(object):
         self._count = 0
         # Has the query changed since results were last retrieved?
         self._stale = True
+        # Attributes to perform filtering on
+        self._query_params = {}
         # Local cache of API objects
         self._data = []
         # What RestModel does this queryset belong to?
@@ -43,6 +45,17 @@ class RestQueryset(object):
     def __len__(self):
         return len(self._evaluate())
 
+    # Assmbemble the querystring params for the API call
+    def _get_query_params(self):
+        params = {}
+
+        # If pagination is on, include those variables
+        if hasattr(self, '_paginator'):
+            params.update(self._paginator.as_params())
+        params.update(self._query_params)
+
+        return params
+
     # Unpaginated API results, only stale once
     def _fetch(self):
         # Only perform a query if the data is stale
@@ -68,7 +81,7 @@ class RestQueryset(object):
             fetch = True
             while fetch:
                 # Retrieve data from the server
-                response = self.client.get('%s?%s' % (self.model._meta.url, self._paginator.as_url()))
+                response = self.client.get(self.model._meta.url, **self._get_query_params())
 
                 # Attempt to grab the size of the dataset from the usual place
                 self._paginator.max = response.get('count', None)
@@ -106,5 +119,18 @@ class RestQueryset(object):
         return self._fetch()
 
     ''' Public API Contract '''
+    def get(self, **kwargs):
+        # We don't allow chaining yet, so just assign parameters to GET
+        self._query_params = kwargs
+        # We only need to know if more than one is returned, extra is only overhead
+        results = self._evaluate()
+        count = len(results)
+        if count == 0:
+            raise self.model.DoesNotExist
+        elif count > 1:
+            raise self.model.MultipleObjectsReturned
+
+        return results[0]
+
     def all(self, *args, **kwargs):
         return self
