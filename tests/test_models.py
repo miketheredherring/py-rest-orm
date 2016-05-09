@@ -23,9 +23,17 @@ class RestModelTestCase(TestCase):
         instances = Post.objects.all()
         self.assertEqual(len(instances), 100)
 
+    def test_restmodel_filter(self):
+        gene = Gene.objects.filter(name__icontains='PEX')
+        self.assertEqual(len(gene), 15)
+
     def test_restmodel_get(self):
         gene = Gene.objects.get(name='PEX10')
         self.assertEqual(gene.name, 'PEX10')
+
+    def test_count(self):
+        queryset = Gene.objects.all()
+        self.assertEqual(queryset.count(), 4813)
 
     def test_restmodel_get_doesnotexist(self):
         self.assertRaises(Gene.DoesNotExist, Gene.objects.get, name='PEXCFTR')

@@ -99,7 +99,7 @@ class RestQueryset(object):
                 fetch = self._paginator.next() if end is None else self._count < (end - start)
 
             # Data is up-to-date
-            self._stale = False
+            # self._stale = False
         return self._data
 
     # Performs 'evaluation' by querying the API and bind the results into an array
@@ -110,8 +110,8 @@ class RestQueryset(object):
             # Check for valid usage
             if end is not None and start >= end:
                 raise ValueError('`start` cannot be greater than or equal to `end`')
-            elif self._paginator.max is not None and end >= self._paginator.max:
-                raise ValueError('`end` cannot be greater than or equal to the maximum number of records')
+            elif self._paginator.max is not None and end > self._paginator.max:
+                raise ValueError('`end` cannot be greater than to the maximum number of records')
 
             return self._fetch_pages(start, end)
 
@@ -119,6 +119,15 @@ class RestQueryset(object):
         return self._fetch()
 
     ''' Public API Contract '''
+    # Returns the number of elements to expect from a given query
+    def count(self):
+        try:
+            self.get()
+        except Exception:
+            pass
+        return self._paginator.max
+
+    # Retrieves a single element, throws exceptions if a single element is not found
     def get(self, **kwargs):
         # We don't allow chaining yet, so just assign parameters to GET
         self._query_params = kwargs
@@ -131,6 +140,15 @@ class RestQueryset(object):
             raise self.model.MultipleObjectsReturned
 
         return results[0]
+
+    # Attempts to find multiple items matching query
+    def filter(self, **kwargs):
+        # We don't allow chaining yet, so just assign parameters to GET
+        self._query_params = kwargs
+        # We only need to know if more than one is returned, extra is only overhead
+        results = self._evaluate()
+
+        return results
 
     def all(self, *args, **kwargs):
         return self

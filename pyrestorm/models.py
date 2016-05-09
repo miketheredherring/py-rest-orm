@@ -20,6 +20,10 @@ class RestModelBase(type):
         new_class = super_new(cls, name, bases, {'__module__': attrs.pop('__module__')})
         new_class._meta = attrs.pop('Meta', None)
 
+        # Django attributes(Doesn't hurt to have them)
+        new_class._meta.model_name = new_class.__name__
+        new_class._meta.app_label = new_class.__module__.split('.')[-1]
+
         # Instantiate the manager instance
         new_class.objects = new_class.objects()
 
@@ -27,6 +31,10 @@ class RestModelBase(type):
         for attr in [attr for attr in dir(new_class) if not callable(attr) and not attr.startswith('__')]:
             if hasattr(getattr(new_class, attr), 'contribute_to_class'):
                 getattr(new_class, attr).contribute_to_class(new_class)
+
+        # Defines shortcut for exceptions
+        new_class.DoesNotExist = type('DoesNotExist', (orm_exceptions.DoesNotExist, ), {})
+        new_class.MultipleObjectsReturned = type('MultipleObjectsReturned', (orm_exceptions.MultipleObjectsReturned, ), {})
 
         return new_class
 
@@ -42,10 +50,6 @@ class RestModel(six.with_metaclass(RestModelBase)):
 
     # Manager to act like Django ORM
     objects = RestOrmManager
-
-    # Defines shortcut for exceptions
-    DoesNotExist = orm_exceptions.DoesNotExist
-    MultipleObjectsReturned = orm_exceptions.MultipleObjectsReturned
 
     # Bind the JSON data to the new instance
     @staticmethod
