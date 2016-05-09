@@ -20,6 +20,18 @@ class RestPaginatorTestCase(TestCase):
         paginator.cursor(10)
         self.assertEqual(paginator.position, 10)
 
+    def test_restpaginator_setmax(self):
+        paginator = RestPaginator()
+        self.assertEqual(paginator.set_max(100), 100)
+
+    def test_restpaginator_invalid_setmax(self):
+        paginator = RestPaginator()
+        self.assertRaises(ValueError, paginator.set_max)
+
+    def test_restpaginator_asparams(self):
+        paginator = RestPaginator()
+        self.assertFalse(paginator.as_params())
+
 
 class DjangoRestFrameworkPaginatorTestCase(TestCase):
     def test_djangorestpaginator_init(self):
@@ -27,9 +39,10 @@ class DjangoRestFrameworkPaginatorTestCase(TestCase):
 
     def test_djangorestpaginator_next(self):
         paginator = DjangoRestFrameworkLimitOffsetPaginator(limit=30)
+        self.assertFalse(paginator.next())
+        paginator.set_max({'count': 50})
         self.assertTrue(paginator.next())
         self.assertEqual(paginator.position, 30)
-        paginator.max = 50
         self.assertFalse(paginator.next())
 
     def test_djangorestpaginator_prev(self):
@@ -40,6 +53,6 @@ class DjangoRestFrameworkPaginatorTestCase(TestCase):
         self.assertTrue(paginator.prev())
         self.assertFalse(paginator.prev())
 
-    def test_djangorestpaginator_as_url(self):
+    def test_djangorestpaginator_setmax(self):
         paginator = DjangoRestFrameworkLimitOffsetPaginator()
-        self.assertEqual(paginator.as_url(), 'limit=20&offset=0')
+        self.assertEqual(paginator.set_max({'count': 100, 'results': []}), 100)

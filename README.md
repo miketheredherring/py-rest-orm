@@ -14,7 +14,7 @@ Generic Python REST ORM. Inspired by Django. Powered by Requests.
 # Usage
 
 Unpaginated API
-```
+```python
 >>> from pyrestorm.models import RestModel
 
 >>> class Post(RestModel):
@@ -29,7 +29,7 @@ Unpaginated API
 ```
 
 Paginated API With Filtering
-```
+```python
 >>> from pyrestorm.models import RestModel
 >>> from pyrestorm.paginators import DjangoRestFrameworkLimitOffsetPaginator
 

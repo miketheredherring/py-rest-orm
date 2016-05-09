@@ -37,8 +37,8 @@ class RestPaginatedQuerysetTestCase(TestCase):
         RestQueryset(Gene)
 
     def test_slice(self):
-        genes = RestQueryset(Gene)[0:5]
-        self.assertEqual(len(genes), 5)
+        genes = RestQueryset(Gene)[0:40]
+        self.assertEqual(len(genes), 40)
 
     def test_evaluate_invalid_bounds(self):
         queryset = RestQueryset(Gene)

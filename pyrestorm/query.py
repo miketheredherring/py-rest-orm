@@ -84,7 +84,7 @@ class RestQueryset(object):
                 response = self.client.get(self.model._meta.url, **self._get_query_params())
 
                 # Attempt to grab the size of the dataset from the usual place
-                self._paginator.max = response.get('count', None)
+                self._paginator.set_max(response)
 
                 # Count how many record were retrieved in this round
                 count = len(response['results'])
@@ -96,7 +96,7 @@ class RestQueryset(object):
                 self._count += count
 
                 # Determine if we need to grab another round of records
-                fetch = self._paginator.next(retrieved=count) if end is None else self._count < (end - start)
+                fetch = self._paginator.next() if end is None else self._count < (end - start)
 
             # Data is up-to-date
             self._stale = False

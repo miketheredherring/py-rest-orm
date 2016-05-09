@@ -20,7 +20,7 @@ class RestPaginator(object):
 
     # Moves the cursor to a specified position in the queryset
     def cursor(self, *args, **kwargs):
-        position = 0
+        position = getattr(self, 'position', 0)
         # Check for the 'required' position argument
         if len(args) == 1 and args[0] >= 0:
             position = args[0]
@@ -28,19 +28,30 @@ class RestPaginator(object):
         # Move the cursor
         self.position = position
 
+    # Sets the maximum number of results available
+    def set_max(self, *args, **kwargs):
+        if len(args) == 1:
+            self.max = args[0]
+        else:
+            raise ValueError('`max` must be provided as the first positional argument')
+        return self.max
+
+    # Dictionary of URL params for pagination
+    def as_params(self):
+        return {}
+
 
 class DjangoRestFrameworkLimitOffsetPaginator(RestPaginator):
     def __init__(self, limit=20, **kwargs):
         # Parameter renaming
         return super(DjangoRestFrameworkLimitOffsetPaginator, self).__init__(page_size=limit, **kwargs)
 
-    # Retrieved is meant to educate the paginator on the amunt of results retrieved last request
+    # Retrieved is meant to educate the paginator on the amount of results retrieved last request
     def next(self, retrieved=None):
         ret = True
         # If we don't know how many records there are, and we retrieved a full page last request, next could exist
         # Or if advancing doesn't bring us past the known end
-        if (self.max is None and (retrieved is None or retrieved == self.page_size)) or \
-           (self.page_size is not None and self.position + self.page_size <= self.max):
+        if self.max is not None and self.page_size is not None and self.position + self.page_size <= self.max:
             self.position += self.page_size
         # We can't move
         else:
@@ -66,14 +77,14 @@ class DjangoRestFrameworkLimitOffsetPaginator(RestPaginator):
         super(DjangoRestFrameworkLimitOffsetPaginator, self).cursor(*args, **kwargs)
         self.page_size = kwargs.get('limit', self.page_size)
 
+    # Extract the number of results from the response
+    def set_max(self, response):
+        if self.max is None:
+            return super(DjangoRestFrameworkLimitOffsetPaginator, self).set_max(response['count'])
+
     # Dictionary of URL params for pagination
     def as_params(self):
         params = {'offset': unicode(self.position)}
         if self.page_size is not None:
             params['limit'] = unicode(self.page_size)
         return params
-
-    # Turn the data structure into a url
-    def as_url(self):
-        params = self.as_params()
-        return 'limit=%s&offset=%s' % (params['limit'], params['offset'])
