@@ -7,7 +7,8 @@ from exceptions.http import (
     NotFoundException,
     PermissionDeniedException,
     AuthorizationException,
-    BadRequestException
+    BadRequestException,
+    MethodNotAllowedException
 )
 
 
@@ -19,6 +20,7 @@ class StatusCodes(object):
     HTTP_UNAUTHORIZED = 401
     HTTP_PERMISSION_DENIED = 403
     HTTP_NOT_FOUND = 404
+    HTTP_METHOD_NOT_ALLOWED = 405
     HTTP_SERVER_ERROR = 500
 
 
@@ -51,6 +53,8 @@ class RestClient(object):
     def raise_exception(self, status_code):
         if status_code == StatusCodes.HTTP_SERVER_ERROR:
             raise ServerErrorException
+        elif status_code == StatusCodes.HTTP_METHOD_NOT_ALLOWED:
+            raise MethodNotAllowedException
         elif status_code == StatusCodes.HTTP_NOT_FOUND:
             raise NotFoundException
         elif status_code == StatusCodes.HTTP_PERMISSION_DENIED:

@@ -29,6 +29,10 @@ class RestModelTestCase(TestCase):
         gene = genes.filter(name='PEX10')
         self.assertEqual(len(gene), 1)
 
+    def test_restmodel_getabsoluteurl(self):
+        gene = Gene.objects.get(name='PEX10')
+        self.assertEqual('https://api.genepeeks.com/genes/PEX10/', gene.get_absolute_url())
+
     def test_restmodel_get(self):
         gene = Gene.objects.get(name='PEX10')
         self.assertEqual(gene.name, 'PEX10')
@@ -42,6 +46,12 @@ class RestModelTestCase(TestCase):
 
     def test_restmodel_get_multipleobjectreturned(self):
         self.assertRaises(Gene.MultipleObjectsReturned, Gene.objects.get, name__icontains='PEX')
+
+    def test_restmodel_save(self):
+        post = Post.objects.get(id=1)
+        post.title = 'Testing'
+        post.save()
+        self.assertEqual(post._data['title'], post.title)
 
     def test_restormmanager_get_on_instance(self):
         instance = Post()

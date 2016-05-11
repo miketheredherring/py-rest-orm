@@ -1,5 +1,6 @@
 import six
 
+from pyrestorm.client import RestClient
 from pyrestorm.exceptions import orm as orm_exceptions
 from pyrestorm.manager import RestOrmManager
 
@@ -20,9 +21,16 @@ class RestModelBase(type):
         new_class = super_new(cls, name, bases, {'__module__': attrs.pop('__module__')})
         new_class._meta = attrs.pop('Meta', None)
 
+        # Clean the incoming data, URL should not contain trailing slash for proper assembly
+        new_class._meta.url = new_class._meta.url.rstrip('/')
+
         # Django attributes(Doesn't hurt to have them)
         new_class._meta.model_name = new_class.__name__
         new_class._meta.app_label = new_class.__module__.split('.')[-1]
+
+        # Check if user is overriding URL scheme
+        if not hasattr(new_class._meta, 'slug_field'):
+            new_class._meta.slug_field = 'id'
 
         # Instantiate the manager instance
         new_class.objects = new_class.objects()
@@ -42,11 +50,11 @@ class RestModelBase(type):
 class RestModel(six.with_metaclass(RestModelBase)):
     # Bind the JSON data from a response to a new instance of the model
     def __init__(self, *args, **kwargs):
-        data = kwargs.pop('data', {})
+        self._data = kwargs.pop('data', {})
         super(RestModel, self).__init__()
 
         # Bind data to the model
-        self._bind_data(self, data)
+        self._bind_data(self, self._data)
 
     # Manager to act like Django ORM
     objects = RestOrmManager
@@ -63,3 +71,27 @@ class RestModel(six.with_metaclass(RestModelBase)):
                 RestModel._bind_data(attr, val)
             else:
                 setattr(obj, key, val)
+
+    # Returns the URL to this resource
+    def get_absolute_url(self):
+        return '/'.join([self._meta.url, unicode(getattr(self, self._meta.slug_field)), ''])
+
+    # Does not save nested keys
+    def save(self, raise_exception=False, **kwargs):
+        # Difference between the original model and new one
+        diff = {}
+
+        # For all of the top level keys
+        for key, value in self.__dict__.iteritems():
+            # Do not worry about nested values
+            if isinstance(value, dict):
+                continue
+
+            if self._data.get(key, None) != value:
+                diff[key] = value
+
+        # Perform a PATCH only if there are difference
+        if diff:
+            client = RestClient()
+            # Update the local model on success
+            self._data = client.patch(self.get_absolute_url(), diff)

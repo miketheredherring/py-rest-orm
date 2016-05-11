@@ -11,3 +11,8 @@ class DoesNotExist(RestFailure):
 class MultipleObjectsReturned(RestFailure):
     # Multiple objects matched GET query
     pass
+
+
+class UpdateNotAllowed(RestFailure):
+    # The object refused to be updated, HTTP 405 usually
+    pass

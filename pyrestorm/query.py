@@ -78,8 +78,8 @@ class RestQueryset(object):
 
     # Unpaginated API results, only stale once
     def _fetch(self):
-        # Only perform a query if the data is stale
-        response = self.client.get(self.model._meta.url)
+        # Retrieve data from the server
+        response = self.client.get('/'.join([self.model._meta.url, '']), **self._get_query_params())
         self._data = [self.model(data=item) for item in response]
         self._count = len(self._data)
         return self._data
@@ -97,7 +97,7 @@ class RestQueryset(object):
         fetch = True
         while fetch:
             # Retrieve data from the server
-            response = self.client.get(self.model._meta.url, **self._get_query_params())
+            response = self.client.get('/'.join([self.model._meta.url, '']), **self._get_query_params())
 
             # Attempt to grab the size of the dataset from the usual place
             self._paginator.set_max(response)

@@ -9,5 +9,6 @@ class Post(RestModel):
 
 class Gene(RestModel):
     class Meta:
-        url = 'https://api.genepeeks.com/genes/'
         paginator_class = DjangoRestFrameworkLimitOffsetPaginator
+        slug_field = 'slug'
+        url = 'https://api.genepeeks.com/genes/'
