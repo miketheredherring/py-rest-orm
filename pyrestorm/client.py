@@ -30,6 +30,12 @@ class RestClient(object):
     '''
     JSON = 'application/json'
 
+    def __init__(self, token=None, authorization_header=None):
+        self.headers = {}
+        # If both of the settings are set, setup authorization
+        if token is not None and authorization_header is not None:
+            self.headers['Authorization'] = '%s %s' % (authorization_header, token)
+
     # Wrapper for requests library with response parsing and exception handler
     def request(self, method, url, *args, **kwargs):
         # Check for valid request method
@@ -38,6 +44,9 @@ class RestClient(object):
         # Programming error
         if isinstance(method, str):
             raise ValueError('Invalid method `%s` for requests' % method)
+
+        # Add headers to the request
+        kwargs['headers'] = self.headers
 
         # Perform the request
         self._response = method(url, *args, **kwargs)

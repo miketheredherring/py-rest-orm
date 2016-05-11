@@ -12,3 +12,11 @@ class Gene(RestModel):
         paginator_class = DjangoRestFrameworkLimitOffsetPaginator
         slug_field = 'slug'
         url = 'https://api.genepeeks.com/genes/'
+
+
+class Subject(RestModel):
+    class Meta:
+        paginator_class = DjangoRestFrameworkLimitOffsetPaginator
+        slug_field = 'key'
+        token = 'INVALIDTOKEN'
+        url = 'https://api.genepeeks.com/subjects/'

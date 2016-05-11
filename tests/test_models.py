@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from .models import Post, Gene
+from pyrestorm.exceptions.http import AuthorizationException
+from .models import Post, Gene, Subject
 
 
 class RestModelTestCase(TestCase):
@@ -61,3 +62,6 @@ class RestModelTestCase(TestCase):
     def test_restormmanager_get_on_instance(self):
         instance = Post()
         self.assertRaises(AttributeError, getattr, instance, 'objects')
+
+    def test_authorization_headers(self):
+        self.assertRaises(AuthorizationException, Subject.objects.get, key='TESTING')

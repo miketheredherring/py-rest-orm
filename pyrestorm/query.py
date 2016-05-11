@@ -1,7 +1,5 @@
 import copy
 
-from pyrestorm.client import RestClient
-
 
 class RestQuery(object):
     def __deepcopy__(self, memodict={}):
@@ -36,7 +34,7 @@ class RestQueryset(object):
         if hasattr(model._meta, 'paginator_class'):
             self._paginator = model._meta.paginator_class()
         # REST Client for performing API calls
-        self.client = RestClient()
+        self.client = self.model.get_client()
 
     # 1) Iteration
     def __iter__(self):

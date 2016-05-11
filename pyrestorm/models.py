@@ -23,6 +23,10 @@ class RestModelBase(type):
 
         # Clean the incoming data, URL should not contain trailing slash for proper assembly
         new_class._meta.url = new_class._meta.url.rstrip('/')
+        # Parse authentication if it is present
+        if hasattr(new_class._meta, 'token'):
+            if not hasattr(new_class._meta, 'token_prefix'):
+                new_class._meta.token_prefix = 'Token'
 
         # Django attributes(Doesn't hurt to have them)
         new_class._meta.model_name = new_class.__name__
@@ -64,6 +68,13 @@ class RestModel(six.with_metaclass(RestModelBase)):
     # Manager to act like Django ORM
     objects = RestOrmManager
 
+    @classmethod
+    def get_client(cls):
+        return RestClient(
+            token=getattr(cls._meta, 'token', None),
+            authorization_header=getattr(cls._meta, 'token_prefix', None)
+        )
+
     # Bind the JSON data to the new instance
     @staticmethod
     def _bind_data(obj, data):
@@ -97,7 +108,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
 
         # Perform a PATCH only if there are difference
         if diff:
-            client = RestClient()
+            client = self.get_client()
 
             url = self._meta.url
             method = client.post
