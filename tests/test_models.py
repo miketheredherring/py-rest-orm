@@ -24,8 +24,10 @@ class RestModelTestCase(TestCase):
         self.assertEqual(len(instances), 100)
 
     def test_restmodel_filter(self):
-        gene = Gene.objects.filter(name__icontains='PEX')
-        self.assertEqual(len(gene), 15)
+        genes = Gene.objects.filter(name__icontains='PEX')
+        self.assertEqual(len(genes), 15)
+        gene = genes.filter(name='PEX10')
+        self.assertEqual(len(gene), 1)
 
     def test_restmodel_get(self):
         gene = Gene.objects.get(name='PEX10')

@@ -1,4 +1,18 @@
+import copy
+
 from pyrestorm.client import RestClient
+
+
+class RestQuery(object):
+    def __deepcopy__(self, memodict={}):
+        return copy.deepcopy(self.params)
+
+    def __init__(self, *args, **kwargs):
+        self.params = {}
+        self.params.update(kwargs)
+
+    def add_qs(self, **kwargs):
+        self.params.update(kwargs)
 
 
 class RestQueryset(object):
@@ -10,12 +24,10 @@ class RestQueryset(object):
         3) Length/Counting
     '''
     def __init__(self, model, *args, **kwargs):
+        # RestQuery object storing query attributes
+        self.query = RestQuery(**kwargs.get('query', {}))
         # How many records to we have in the _data cache
         self._count = 0
-        # Has the query changed since results were last retrieved?
-        self._stale = True
-        # Attributes to perform filtering on
-        self._query_params = {}
         # Local cache of API objects
         self._data = []
         # What RestModel does this queryset belong to?
@@ -45,6 +57,14 @@ class RestQueryset(object):
     def __len__(self):
         return len(self._evaluate())
 
+    # Returns an identical copy of self
+    def _clone(self):
+        # New copy of RestQueryset
+        clone = self.__class__(model=self.model, query=copy.deepcopy(self.query))
+
+        # Return to the user
+        return clone
+
     # Assmbemble the querystring params for the API call
     def _get_query_params(self):
         params = {}
@@ -52,54 +72,48 @@ class RestQueryset(object):
         # If pagination is on, include those variables
         if hasattr(self, '_paginator'):
             params.update(self._paginator.as_params())
-        params.update(self._query_params)
+        params.update(self.query.params)
 
         return params
 
     # Unpaginated API results, only stale once
     def _fetch(self):
         # Only perform a query if the data is stale
-        if self._stale:
-            response = self.client.get(self.model._meta.url)
-            self._data = [self.model(data=item) for item in response]
-            self._count = len(self._data)
-            self._stale = False
+        response = self.client.get(self.model._meta.url)
+        self._data = [self.model(data=item) for item in response]
+        self._count = len(self._data)
         return self._data
 
     def _fetch_pages(self, start, end):
         # Move the paginator to the beginning of the segment of interest
         self._paginator.cursor(start)
 
-        # Only perform a query if the data is stale
-        if self._stale:
-            # Naive data reset, we can only cache for the current query
-            self._data = []
-            self._count = 0
+        # Naive data reset, we can only cache for the current query
+        self._data = []
+        self._count = 0
 
-            # While we don't have all the data we need, fetch
-            self._paginator.cursor(start, limit=(end if end is None else (end - start)))
-            fetch = True
-            while fetch:
-                # Retrieve data from the server
-                response = self.client.get(self.model._meta.url, **self._get_query_params())
+        # While we don't have all the data we need, fetch
+        self._paginator.cursor(start, limit=(end if end is None else (end - start)))
+        fetch = True
+        while fetch:
+            # Retrieve data from the server
+            response = self.client.get(self.model._meta.url, **self._get_query_params())
 
-                # Attempt to grab the size of the dataset from the usual place
-                self._paginator.set_max(response)
+            # Attempt to grab the size of the dataset from the usual place
+            self._paginator.set_max(response)
 
-                # Count how many record were retrieved in this round
-                count = len(response['results'])
+            # Count how many record were retrieved in this round
+            count = len(response['results'])
 
-                # Extend the dataset with the new records
-                self._data.extend([self.model(data=item) for item in response['results']])
+            # Extend the dataset with the new records
+            self._data.extend([self.model(data=item) for item in response['results']])
 
-                # Increment the number of records we currently have in the queryset
-                self._count += count
+            # Increment the number of records we currently have in the queryset
+            self._count += count
 
-                # Determine if we need to grab another round of records
-                fetch = self._paginator.next() if end is None else self._count < (end - start)
+            # Determine if we need to grab another round of records
+            fetch = self._paginator.next() if end is None else self._count < (end - start)
 
-            # Data is up-to-date
-            # self._stale = False
         return self._data
 
     # Performs 'evaluation' by querying the API and bind the results into an array
@@ -108,8 +122,8 @@ class RestQueryset(object):
         if hasattr(self, '_paginator'):
             end = self._paginator.max if end is None else end
             # Check for valid usage
-            if end is not None and start >= end:
-                raise ValueError('`start` cannot be greater than or equal to `end`')
+            if end is not None and start > end:
+                raise ValueError('`start` cannot be greater than `end`')
             elif self._paginator.max is not None and end > self._paginator.max:
                 raise ValueError('`end` cannot be greater than to the maximum number of records')
 
@@ -121,18 +135,20 @@ class RestQueryset(object):
     ''' Public API Contract '''
     # Returns the number of elements to expect from a given query
     def count(self):
-        try:
-            self.get()
-        except Exception:
-            pass
-        return self._paginator.max
+        # We don't want to permenantly affect this instance
+        clone = self._clone()
+        clone._evaluate(end=0)
+
+        return clone._paginator.max
 
     # Retrieves a single element, throws exceptions if a single element is not found
     def get(self, **kwargs):
-        # We don't allow chaining yet, so just assign parameters to GET
-        self._query_params = kwargs
+        # We don't want to permenantly affect this instance
+        clone = self._clone()
+        clone.query.add_qs(**kwargs)
+
         # We only need to know if more than one is returned, extra is only overhead
-        results = self._evaluate()
+        results = clone._evaluate()
         count = len(results)
         if count == 0:
             raise self.model.DoesNotExist
@@ -143,12 +159,11 @@ class RestQueryset(object):
 
     # Attempts to find multiple items matching query
     def filter(self, **kwargs):
-        # We don't allow chaining yet, so just assign parameters to GET
-        self._query_params = kwargs
-        # We only need to know if more than one is returned, extra is only overhead
-        results = self._evaluate()
+        # We don't want to permenantly affect this instance
+        clone = self._clone()
+        clone.query.add_qs(**kwargs)
 
-        return results
+        return clone
 
     def all(self, *args, **kwargs):
-        return self
+        return self._clone()
