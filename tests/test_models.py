@@ -53,6 +53,11 @@ class RestModelTestCase(TestCase):
         post.save()
         self.assertEqual(post._data['title'], post.title)
 
+    def test_restmodel_savenewinstance(self):
+        post = Post(title='Hello', body='World', userId=1)
+        post.save()
+        self.assertEqual(post.id, 101)
+
     def test_restormmanager_get_on_instance(self):
         instance = Post()
         self.assertRaises(AttributeError, getattr, instance, 'objects')

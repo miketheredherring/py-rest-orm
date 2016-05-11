@@ -53,8 +53,13 @@ class RestModel(six.with_metaclass(RestModelBase)):
         self._data = kwargs.pop('data', {})
         super(RestModel, self).__init__()
 
+        data_to_bind = self._data
+        # Check for arguments the user provided
+        if bool(self._data) is False:
+            data_to_bind = kwargs
+
         # Bind data to the model
-        self._bind_data(self, self._data)
+        self._bind_data(self, data_to_bind)
 
     # Manager to act like Django ORM
     objects = RestOrmManager
@@ -87,11 +92,20 @@ class RestModel(six.with_metaclass(RestModelBase)):
             if isinstance(value, dict):
                 continue
 
-            if self._data.get(key, None) != value:
+            if self._data.get(key, '__SENTINEL__') != value:
                 diff[key] = value
 
         # Perform a PATCH only if there are difference
         if diff:
             client = RestClient()
+
+            url = self._meta.url
+            method = client.post
+            # Check if this is an update or a new instance
+            if bool(self._data) is True:
+                url = self.get_absolute_url()
+                method = client.patch
+
             # Update the local model on success
-            self._data = client.patch(self.get_absolute_url(), diff)
+            self._data = method(url, diff)
+            self._bind_data(self, self._data)
