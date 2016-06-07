@@ -7,7 +7,7 @@ def unicode_to_ascii(item):
     if isinstance(item, dict):
         for key in item.keys():
             if isinstance(item[key], six.string_types):
-                item[key] = item[key].decode('unicode_escape').encode('ascii', 'ignore')
+                item[key] = item[key].encode('ascii', 'ignore')
 
     return item
 
