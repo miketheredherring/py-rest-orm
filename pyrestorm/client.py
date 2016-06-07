@@ -10,6 +10,7 @@ from exceptions.http import (
     BadRequestException,
     MethodNotAllowedException
 )
+from utils import build_url
 
 
 class StatusCodes(object):
@@ -83,10 +84,7 @@ class RestClient(object):
         return ret
 
     def get(self, url, *args, **kwargs):
-        # If the user provided kwargs, append them to the url
-        if kwargs:
-            url += '?%s' % urllib.urlencode(kwargs)
-        return self.request('GET', url)
+        return self.request('GET', build_url(url, **kwargs))
 
     def post(self, url, data, *args, **kwargs):
         return self.request('POST', url, json=data)

@@ -43,7 +43,7 @@ class RestModelTestCase(TestCase):
         self.assertEqual(queryset.count(), 4813)
 
     def test_restmodel_get_doesnotexist(self):
-        self.assertRaises(Gene.DoesNotExist, Gene.objects.get, name='PEXCFTR')
+        self.assertRaises(Gene.DoesNotExist, Gene.objects.get, name='PEXCFTR\u2019')
 
     def test_restmodel_get_multipleobjectreturned(self):
         self.assertRaises(Gene.MultipleObjectsReturned, Gene.objects.get, name__icontains='PEX')

@@ -36,6 +36,7 @@ setup(
     long_description=README,
     install_requires=[
         'requests>=2.9.1',
+        'six==1.10.0',
     ],
     url='',
     author='Mike Hearing',
