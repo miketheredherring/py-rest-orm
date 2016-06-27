@@ -78,7 +78,7 @@ class RestQueryset(object):
     def _fetch(self):
         # Retrieve data from the server
         response = self.client.get('/'.join([self.model._meta.url, '']), **self._get_query_params())
-        self._data = [self.model(data=item) for item in response]
+        self._data = [self.model(_json=item) for item in response]
         self._count = len(self._data)
         return self._data
 
@@ -104,7 +104,7 @@ class RestQueryset(object):
             count = len(response['results'])
 
             # Extend the dataset with the new records
-            self._data.extend([self.model(data=item) for item in response['results']])
+            self._data.extend([self.model(_json=item) for item in response['results']])
 
             # Increment the number of records we currently have in the queryset
             self._count += count

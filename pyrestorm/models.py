@@ -44,7 +44,7 @@ class RestModelBase(type):
             if hasattr(getattr(new_class, attr), 'contribute_to_class'):
                 getattr(new_class, attr).contribute_to_class(new_class)
 
-        # Defines shortcut for exceptions
+        # Defines shortcut for exceptions specific to this model type
         new_class.DoesNotExist = type('DoesNotExist', (orm_exceptions.DoesNotExist, ), {})
         new_class.MultipleObjectsReturned = type('MultipleObjectsReturned', (orm_exceptions.MultipleObjectsReturned, ), {})
 
@@ -54,7 +54,7 @@ class RestModelBase(type):
 class RestModel(six.with_metaclass(RestModelBase)):
     # Bind the JSON data from a response to a new instance of the model
     def __init__(self, *args, **kwargs):
-        self._data = kwargs.pop('data', {})
+        self._data = kwargs.pop('_json', {})
         super(RestModel, self).__init__()
 
         data_to_bind = self._data
@@ -100,7 +100,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
         # For all of the top level keys
         for key, value in self.__dict__.iteritems():
             # Do not worry about nested values
-            if isinstance(value, dict):
+            if key.startswith('_'):
                 continue
 
             if self._data.get(key, '__SENTINEL__') != value:

@@ -10,7 +10,7 @@ class RestModelTestCase(TestCase):
 
     def test_restmodel_nested(self):
         instance = Post(
-            data={
+            _json={
                 'var1': 'helloworld',
                 'nested_object': {
                     'var2': 'hellouniverse'
