@@ -139,6 +139,19 @@ class RestQueryset(object):
 
         return clone._paginator.max
 
+    # Creates a single element, throws and exeception if there is a validation error
+    def create(self, **kwargs):
+        instance = self.model()
+
+        # Assign all of the attributes to the model
+        for key, value in kwargs.iteritems():
+            setattr(instance, key, value)
+
+        # Persist to the API
+        instance.save()
+
+        return instance
+
     # Retrieves a single element, throws exceptions if a single element is not found
     def get(self, **kwargs):
         # We don't want to permenantly affect this instance
@@ -154,6 +167,18 @@ class RestQueryset(object):
             raise self.model.MultipleObjectsReturned
 
         return results[0]
+
+    # Attempts to retrieve a single element using the kwargs, if the record does not exist it will be created including defaults
+    def get_or_create(self, defaults={}, **kwargs):
+        created = False
+        try:
+            instance = self.get(**kwargs)
+        except self.model.DoesNotExist:
+            defaults.update(kwargs)
+            instance = self.create(**defaults)
+            created = True
+
+        return (instance, created)
 
     # Attempts to find multiple items matching query
     def filter(self, **kwargs):

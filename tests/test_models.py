@@ -54,10 +54,26 @@ class RestModelTestCase(TestCase):
         post.save()
         self.assertEqual(post._data['title'], post.title)
 
+    def test_restmodel_createnewinstance(self):
+        post = Post.objects.create(title='Hello', body='World', userId=1)
+        self.assertEqual(post.id, 101)
+
     def test_restmodel_savenewinstance(self):
         post = Post(title='Hello', body='World', userId=1)
         post.save()
         self.assertEqual(post.id, 101)
+
+    def test_restmodel_get_or_create_false(self):
+        gene, created = Gene.objects.get_or_create(name='PEX10')
+        self.assertEqual(gene.name, 'PEX10')
+        self.assertFalse(created)
+
+    def test_restmodel_get_or_create_true(self):
+        post, created = Post.objects.get_or_create(userId=100, defaults={'title': 'Hello', 'body': 'World'})
+        self.assertEqual(post.id, 101)
+        self.assertEqual(post.title, 'Hello')
+        self.assertEqual(post.body, 'World')
+        self.assertTrue(created)
 
     def test_restormmanager_get_on_instance(self):
         instance = Post()
