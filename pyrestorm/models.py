@@ -1,3 +1,4 @@
+import copy
 import six
 
 from pyrestorm.client import RestClient
@@ -23,6 +24,10 @@ class RestModelBase(type):
 
         # Clean the incoming data, URL should not contain trailing slash for proper assembly
         new_class._meta.url = new_class._meta.url.rstrip('/')
+
+        # URL forming with append slash set to default True
+        new_class._meta.append_slash = getattr(new_class._meta, 'append_slash', True)
+
         # Parse authentication if it is present
         if hasattr(new_class._meta, 'token'):
             if not hasattr(new_class._meta, 'token_prefix'):
@@ -86,11 +91,24 @@ class RestModel(six.with_metaclass(RestModelBase)):
                 attr = getattr(obj, key)
                 RestModel._bind_data(attr, val)
             else:
-                setattr(obj, key, val)
+                setattr(obj, key, copy.deepcopy(val))
+
+    # Returns the base URL for this resource type
+    @classmethod
+    def get_base_url(cls, bits=[]):
+        # Assemble from the base url
+        url_bits = [cls._meta.url, ]
+        url_bits.extend(bits)
+
+        # Handle trailing slash if requested
+        if cls._meta.append_slash is True:
+            url_bits.append('')
+
+        return '/'.join(url_bits)
 
     # Returns the URL to this resource
     def get_absolute_url(self):
-        return '/'.join([self._meta.url, unicode(getattr(self, self._meta.slug_field)), ''])
+        return self.get_base_url(bits=[unicode(getattr(self, self._meta.slug_field)), ])
 
     # Does not save nested keys
     def save(self, raise_exception=False, **kwargs):
@@ -99,7 +117,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
 
         # For all of the top level keys
         for key, value in self.__dict__.iteritems():
-            # Do not worry about nested values
+            # Do not worry about private
             if key.startswith('_'):
                 continue
 
