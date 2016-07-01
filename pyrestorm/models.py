@@ -128,7 +128,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
         if diff:
             client = self.get_client()
 
-            url = self._meta.url
+            url = self.get_base_url()
             method = client.post
             # Check if this is an update or a new instance
             if bool(self._data) is True:
