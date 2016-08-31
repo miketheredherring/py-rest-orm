@@ -44,4 +44,4 @@ class RestPaginatedQuerysetTestCase(TestCase):
         queryset = RestQueryset(Gene)
         self.assertRaises(ValueError, queryset.__getitem__, slice(5, 3))
         queryset._paginator.max = 10
-        self.assertRaises(ValueError, queryset.__getitem__, 11)
+        queryset[0:11]

@@ -126,7 +126,10 @@ class RestQueryset(object):
             if end is not None and start > end:
                 raise ValueError('`start` cannot be greater than `end`')
             elif self._paginator.max is not None and end > self._paginator.max:
-                raise ValueError('`end` cannot be greater than to the maximum number of records')
+                # Turns out Python returns the entire list in the event of an 'over slice'
+                # where the bounds of the slice extend beyond the length of the list.
+                # raise ValueError('`end` cannot be greater than to the maximum number of records')
+                pass
 
             return self._fetch_pages(start, end)
 
