@@ -19,7 +19,7 @@ class RestModelBase(type):
             return super_new(cls, name, bases, attrs)
 
         # Create the current class
-        new_class = super_new(cls, name, bases, {'__module__': attrs.pop('__module__')})
+        new_class = super_new(cls, name, bases, attrs)
         new_class._meta = attrs.pop('Meta', None)
 
         # Clean the incoming data, URL should not contain trailing slash for proper assembly
@@ -73,6 +73,14 @@ class RestModel(six.with_metaclass(RestModelBase)):
     # Manager to act like Django ORM
     objects = RestOrmManager
 
+    #  DJANGO COMPATABILITY
+
+    def serializable_value(self, value):
+        '''All JSON is of serializable types, thus just return the value
+        '''
+        return getattr(self, value)
+
+    # Returns a new client
     @classmethod
     def get_client(cls):
         return RestClient(

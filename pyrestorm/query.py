@@ -22,6 +22,9 @@ class RestQueryset(object):
         3) Length/Counting
     '''
     def __init__(self, model, *args, **kwargs):
+        # Compatabilities with Django Queryset
+        self._prefetch_related_lookups = True
+
         # RestQuery object storing query attributes
         self.query = RestQuery(**kwargs.get('query', {}))
         # How many records to we have in the _data cache

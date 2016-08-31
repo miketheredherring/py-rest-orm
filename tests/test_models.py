@@ -54,6 +54,12 @@ class RestModelTestCase(TestCase):
         post.save()
         self.assertEqual(post._data['title'], post.title)
 
+    def test_restmodel_serializable_value(self):
+        post = Post.objects.get(id=1)
+        post.title = 'Testing'
+        post.save()
+        self.assertEqual(post.serializable_value('title'), post.title)
+
     def test_restmodel_createnewinstance(self):
         post = Post.objects.create(title='Hello', body='World', userId=1)
         self.assertEqual(post.id, 101)
