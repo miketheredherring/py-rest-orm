@@ -95,7 +95,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
             # Bind the data to the next level if need be
             if isinstance(val, dict):
                 # Create the class if need be, otherwise do nothing
-                setattr(obj, key, type(key.title(), (), {})) if not hasattr(obj, key) else None
+                setattr(obj, key, type(str(key.title()), (), {})) if not hasattr(obj, key) else None
                 attr = getattr(obj, key)
                 RestModel._bind_data(attr, val)
             else:

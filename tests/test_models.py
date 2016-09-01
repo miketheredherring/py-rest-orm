@@ -25,25 +25,23 @@ class RestModelTestCase(TestCase):
         self.assertEqual(len(instances), 100)
 
     def test_restmodel_filter(self):
-        genes = Gene.objects.filter(name__icontains='PEX')
-        self.assertEqual(len(genes), 15)
-        gene = genes.filter(name='PEX10')
-        self.assertEqual(len(gene), 1)
+        genes = Gene.objects.filter(ens_gene='ENSG00000011295')
+        self.assertEqual(len(genes), 1)
 
     def test_restmodel_getabsoluteurl(self):
-        gene = Gene.objects.get(name='PEX10')
-        self.assertEqual('https://api.genepeeks.com/genes/PEX10/', gene.get_absolute_url())
+        gene = Gene.objects.get(ens_gene='ENSG00000011295')
+        self.assertEqual('https://api.genepeeks.com/genes/ENSG00000011295/', gene.get_absolute_url())
 
     def test_restmodel_get(self):
-        gene = Gene.objects.get(name='PEX10')
-        self.assertEqual(gene.name, 'PEX10')
+        gene = Gene.objects.get(ens_gene='ENSG00000011295')
+        self.assertEqual(gene.ens_gene, 'ENSG00000011295')
 
     def test_count(self):
         queryset = Gene.objects.all()
-        self.assertEqual(queryset.count(), 4813)
+        self.assertEqual(queryset.count(), 4792)
 
     def test_restmodel_get_doesnotexist(self):
-        self.assertRaises(Gene.DoesNotExist, Gene.objects.get, name='PEXCFTR\u2019')
+        self.assertRaises(Gene.DoesNotExist, Gene.objects.get, ens_gene='ENSG00000011295\u2019')
 
     def test_restmodel_get_multipleobjectreturned(self):
         self.assertRaises(Gene.MultipleObjectsReturned, Gene.objects.get, name__icontains='PEX')
@@ -70,8 +68,8 @@ class RestModelTestCase(TestCase):
         self.assertEqual(post.id, 101)
 
     def test_restmodel_get_or_create_false(self):
-        gene, created = Gene.objects.get_or_create(name='PEX10')
-        self.assertEqual(gene.name, 'PEX10')
+        gene, created = Gene.objects.get_or_create(ens_gene='ENSG00000011295')
+        self.assertEqual(gene.ens_gene, 'ENSG00000011295')
         self.assertFalse(created)
 
     def test_restmodel_get_or_create_true(self):
