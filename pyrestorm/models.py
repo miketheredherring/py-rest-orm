@@ -5,6 +5,8 @@ from pyrestorm.client import RestClient
 from pyrestorm.exceptions import orm as orm_exceptions
 from pyrestorm.manager import RestOrmManager
 
+primitives = [int, str, unicode, bool]
+
 
 class RestModelBase(type):
     # Called when class is imported got guarantee proper setup of child classes to parent
@@ -116,12 +118,15 @@ class RestModel(six.with_metaclass(RestModelBase)):
                 continue
 
             value_type = type(value)
-            if value_type not in [int, str, unicode, bool]:
+            if value_type not in primitives:
                 # Nested structure
                 if value_type == list:
                     local_diff[key] = copy.deepcopy(value)
                     for idx, inner_value in enumerate(value):
-                        local_diff[key][idx] = self._serialize_data(inner_value)
+                        if type(inner_value) not in primitives:
+                            local_diff[key][idx] = self._serialize_data(inner_value)
+                        else:
+                            local_diff[key][idx] = inner_value
                 # Object/Dictionary
                 else:
                     self._serialize_data(value)
