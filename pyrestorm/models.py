@@ -5,7 +5,7 @@ from pyrestorm.client import RestClient
 from pyrestorm.exceptions import orm as orm_exceptions
 from pyrestorm.manager import RestOrmManager
 
-primitives = [int, str, unicode, bool]
+primitives = [int, str, unicode, bool, type(None)]
 
 
 class RestModelBase(type):

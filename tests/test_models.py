@@ -73,6 +73,7 @@ class RestModelTestCase(TestCase):
         post.comments = [Comment(body='Are we having fun yet?'), Comment(body='Hoe about now?')]
         post.fun_numbers = [1, 2, 3, 5, 7]
         post.meta = {'datetime': 'September 23, 2016'}
+        post.archived = None
         post.save()
         self.assertEqual(post.id, 101)
 
