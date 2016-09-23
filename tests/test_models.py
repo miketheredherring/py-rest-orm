@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from pyrestorm.exceptions.http import AuthorizationException
-from .models import Post, Gene, Subject
+from .models import Post, Gene, Subject, Comment, Author
 
 
 class RestModelTestCase(TestCase):
@@ -64,6 +64,14 @@ class RestModelTestCase(TestCase):
 
     def test_restmodel_savenewinstance(self):
         post = Post(title='Hello', body='World', userId=1)
+        post.save()
+        self.assertEqual(post.id, 101)
+
+    def test_restmodel_nestedstructures(self):
+        post = Post(title='Hello', body='World', userId=1)
+        post.author = Author(name='Michael Hearing')
+        post.comments = [Comment(body='Are we having fun yet?'), Comment(body='Hoe about now?')]
+        post.meta = {'datetime': 'September 23, 2016'}
         post.save()
         self.assertEqual(post.id, 101)
 

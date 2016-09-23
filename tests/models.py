@@ -2,6 +2,16 @@ from pyrestorm.models import RestModel
 from pyrestorm.paginators import DjangoRestFrameworkLimitOffsetPaginator
 
 
+class Comment(object):
+    def __init__(self, body):
+        self.body = body
+
+
+class Author(object):
+    def __init__(self, name):
+        self.name = name
+
+
 class Post(RestModel):
     class Meta:
         url = 'http://jsonplaceholder.typicode.com/posts'

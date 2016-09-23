@@ -101,6 +101,36 @@ class RestModel(six.with_metaclass(RestModelBase)):
             else:
                 setattr(obj, key, copy.deepcopy(val))
 
+    # Converts object structure into JSON
+    def _serialize_data(self, obj):
+        local_diff = {}
+
+        # Convert to dictionary
+        if isinstance(obj, dict) is False:
+            obj = obj.__dict__
+
+        # For all of the top level keys
+        for key, value in obj.iteritems():
+            # Do not worry about private
+            if key.startswith('_'):
+                continue
+
+            value_type = type(value)
+            if value_type not in [int, str, unicode, bool]:
+                # Nested structure
+                if value_type == list:
+                    local_diff[key] = copy.deepcopy(value)
+                    for idx, inner_value in enumerate(value):
+                        local_diff[key][idx] = self._serialize_data(inner_value)
+                # Object/Dictionary
+                else:
+                    self._serialize_data(value)
+            # Primitive type
+            elif self._data.get(key, '__SENTINEL__') != value:
+                local_diff[key] = value
+
+        return local_diff
+
     # Returns the base URL for this resource type
     @classmethod
     def get_base_url(cls, bits=[]):
@@ -121,16 +151,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
     # Does not save nested keys
     def save(self, raise_exception=False, **kwargs):
         # Difference between the original model and new one
-        diff = {}
-
-        # For all of the top level keys
-        for key, value in self.__dict__.iteritems():
-            # Do not worry about private
-            if key.startswith('_'):
-                continue
-
-            if self._data.get(key, '__SENTINEL__') != value:
-                diff[key] = value
+        diff = self._serialize_data(self)
 
         # Perform a PATCH only if there are difference
         if diff:
