@@ -6,6 +6,7 @@ from pyrestorm.exceptions import orm as orm_exceptions
 from pyrestorm.manager import RestOrmManager
 
 primitives = [int, str, unicode, bool, type(None)]
+non_object_types = [dict, list, tuple]
 
 
 class RestModelBase(type):
@@ -108,7 +109,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
         local_diff = {}
 
         # Convert to dictionary
-        if isinstance(obj, dict) is False:
+        if type(obj) not in (primitives + non_object_types):
             obj = obj.__dict__
 
         # For all of the top level keys
