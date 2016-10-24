@@ -130,7 +130,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
                             local_diff[key][idx] = inner_value
                 # Object/Dictionary
                 else:
-                    self._serialize_data(value)
+                    local_diff[key] = self._serialize_data(value)
             # Primitive type
             elif self._data.get(key, '__SENTINEL__') != value:
                 local_diff[key] = value
