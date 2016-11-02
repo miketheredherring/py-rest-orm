@@ -48,7 +48,10 @@ class RestModelTestCase(TestCase):
 
     def test_restmodel_save(self):
         post = Post.objects.get(id=1)
+        post.body = [Comment(body='Are we having fun yet?'), Comment(body='Hoe about now?')]
         post.title = 'Testing'
+        post.save()
+        # Redundant save for list serializing
         post.save()
         self.assertEqual(post._data['title'], post.title)
 

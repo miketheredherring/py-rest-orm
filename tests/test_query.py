@@ -31,6 +31,10 @@ class RestQuerysetTestCase(TestCase):
         for item in queryset:
             self.assertTrue(True)
 
+    def test_none(self):
+        queryset = RestQueryset(Post).none()
+        self.assertIsNone(queryset)
+
 
 class RestPaginatedQuerysetTestCase(TestCase):
     def test_init(self):

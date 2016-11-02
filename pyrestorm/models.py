@@ -8,6 +8,8 @@ from pyrestorm.manager import RestOrmManager
 primitives = [int, str, unicode, bool, type(None)]
 non_object_types = [dict, list, tuple]
 
+SENTINEL = '__SENTINEL__'
+
 
 class RestModelBase(type):
     # Called when class is imported got guarantee proper setup of child classes to parent
@@ -104,36 +106,75 @@ class RestModel(six.with_metaclass(RestModelBase)):
             else:
                 setattr(obj, key, copy.deepcopy(val))
 
-    # Converts object structure into JSON
-    def _serialize_data(self, obj):
+    @staticmethod
+    def _get_reference_data(ref, idx):
+        ref_type = type(ref)
+        ret = ref
+        if ref_type == list:
+            try:
+                ret = ref[idx]
+            except ValueError:
+                ret = SENTINEL
+        elif ref_type == dict:
+            ret = ref.get(idx, SENTINEL)
+
+        return ret
+
+    def _serialize_data(self, obj, ref):
+        '''Converts the local Python objects into a JSON structure.
+
+        There are 3 cases we need to handle in this recursive function:
+            1. Primitives: Should be serialized to JSON as-is
+            2. List: Iterate over all elements and call _serialize_data on each
+            3. Dictionary/Object: Recursively call _serialize_data
+
+        Arguments:
+            obj - The current attribute on the model which we are comparing
+                against the previous state for changes.
+            ref - Reference data stored on the `RestModel` for the attribute
+                layer currently being looked at. Used for saving since a
+                HTTP PATCH is used for updates, where we only send the delta.
+        '''
         local_diff = {}
 
-        # Convert to dictionary
+        # Get the `dict` representation of the `object` to combine cases
         if type(obj) not in (primitives + non_object_types):
             obj = obj.__dict__
 
-        # For all of the top level keys
+        # Check each value in the `dict` for changes
         for key, value in obj.iteritems():
-            # Do not worry about private
-            if key.startswith('_'):
+            # 0. Private variables: SKIP
+            # Escape early if nothing has changed
+            if key.startswith('_') or self._get_reference_data(ref, key) == value:
                 continue
 
+            # Determine what type the current `value` is to process one of the three cases
             value_type = type(value)
-            if value_type not in primitives:
-                # Nested structure
+
+            # 1. Primitives
+            if value_type in primitives:
+                # If the value of the field is not what we've seen before, add it to the diff
+                if ref != value:
+                    local_diff[key] = value
+
+            # 2/3. Objects
+            else:
+                # 2. Lists
                 if value_type == list:
-                    local_diff[key] = copy.deepcopy(value)
+                    # Process each idex of the `list`
+                    local_diff[key] = []
                     for idx, inner_value in enumerate(value):
-                        if type(inner_value) not in primitives:
-                            local_diff[key][idx] = self._serialize_data(inner_value)
+                        if type(inner_value) in primitives:
+                            local_diff[key].append(inner_value)
                         else:
-                            local_diff[key][idx] = inner_value
-                # Object/Dictionary
+                            local_diff[key].append(self._serialize_data(inner_value, self._get_reference_data(ref, idx)))
+                # 3. Object/Dictionary
                 else:
-                    local_diff[key] = self._serialize_data(value)
-            # Primitive type
-            elif self._data.get(key, '__SENTINEL__') != value:
-                local_diff[key] = value
+                    new_ref = self._get_reference_data(ref, key)
+                    _data = self._serialize_data(value, new_ref)
+                    if not _data and type(value) not in (primitives + non_object_types):
+                        continue
+                    local_diff[key] = _data
 
         return local_diff
 
@@ -157,7 +198,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
     # Does not save nested keys
     def save(self, raise_exception=False, **kwargs):
         # Difference between the original model and new one
-        diff = self._serialize_data(self)
+        diff = self._serialize_data(self, self._data)
 
         # Perform a PATCH only if there are difference
         if diff:

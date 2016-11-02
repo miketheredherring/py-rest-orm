@@ -197,7 +197,7 @@ class RestQueryset(object):
     def none(self, *args, **kwargs):
         '''Imitate an empty `RestQueryset` with no results
         '''
-        return iter([])
+        return
 
     def all(self, *args, **kwargs):
         '''Unmodified query to return all results in the `RestQueryset`
