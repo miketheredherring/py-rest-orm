@@ -73,7 +73,13 @@ class RestQueryset(object):
         # If pagination is on, include those variables
         if hasattr(self, '_paginator'):
             params.update(self._paginator.as_params())
-        params.update(self.query.params)
+
+        # Sanatize the parameters since some Python types don't encode well
+        for key, value in self.query.params.iteritems():
+            if isinstance(value, (set, frozenset)):
+                value = list(value)
+            params[key] = value
+        params.update(params)
 
         return params
 

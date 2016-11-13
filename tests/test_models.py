@@ -28,6 +28,10 @@ class RestModelTestCase(TestCase):
         genes = Gene.objects.filter(ens_gene='ENSG00000011295')
         self.assertEqual(len(genes), 1)
 
+    def test_restmodel_filter_empty(self):
+        genes = Gene.objects.filter(ens_gene='ENSG00000011295', id__in=frozenset([1, 2]))
+        self.assertEqual(len(genes), 1)
+
     def test_restmodel_getabsoluteurl(self):
         gene = Gene.objects.get(ens_gene='ENSG00000011295')
         self.assertEqual('https://api.genepeeks.com/genes/ENSG00000011295/', gene.get_absolute_url())
