@@ -22,11 +22,8 @@ class RestPaginatorTestCase(TestCase):
 
     def test_restpaginator_setmax(self):
         paginator = RestPaginator()
-        self.assertEqual(paginator.set_max(100), 100)
-
-    def test_restpaginator_invalid_setmax(self):
-        paginator = RestPaginator()
-        self.assertRaises(ValueError, paginator.set_max)
+        paginator.set_max(100)
+        self.assertEqual(paginator.max, 100)
 
     def test_restpaginator_asparams(self):
         paginator = RestPaginator()
@@ -55,4 +52,5 @@ class DjangoRestFrameworkPaginatorTestCase(TestCase):
 
     def test_djangorestpaginator_setmax(self):
         paginator = DjangoRestFrameworkLimitOffsetPaginator()
-        self.assertEqual(paginator.set_max({'count': 100, 'results': []}), 100)
+        paginator.set_max({'count': 100, 'results': []})
+        self.assertEqual(paginator.max, 100)
