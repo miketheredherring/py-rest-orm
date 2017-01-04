@@ -2,6 +2,7 @@ import copy
 import six
 
 from pyrestorm.client import RestClient
+from pyrestorm.fields import Field
 from pyrestorm.exceptions import orm as orm_exceptions
 from pyrestorm.manager import RestOrmManager
 
@@ -26,6 +27,12 @@ class RestModelBase(type):
         # Create the current class
         new_class = super_new(cls, name, bases, attrs)
         new_class._meta = attrs.pop('Meta', None)
+
+        # Binds `Field` instances to the meta class for validation
+        new_class._meta.fields = {}
+        for name in attrs.keys():
+            if isinstance(attrs[name], Field):
+                new_class._meta.fields[name] = attrs.pop(name)
 
         # Clean the incoming data, URL should not contain trailing slash for proper assembly
         new_class._meta.url = new_class._meta.url.rstrip('/')
@@ -104,7 +111,10 @@ class RestModel(six.with_metaclass(RestModelBase)):
                 attr = getattr(obj, key)
                 RestModel._bind_data(attr, val)
             else:
-                setattr(obj, key, copy.deepcopy(val))
+                restore_value = copy.deepcopy(val)
+                if key in getattr(getattr(obj, '_meta', None), 'fields', {}):
+                    restore_value = obj._meta.fields[key].restore(restore_value)
+                setattr(obj, key, restore_value)
 
     @staticmethod
     def _get_reference_data(ref, idx):
@@ -134,6 +144,9 @@ class RestModel(six.with_metaclass(RestModelBase)):
             ref - Reference data stored on the `RestModel` for the attribute
                 layer currently being looked at. Used for saving since a
                 HTTP PATCH is used for updates, where we only send the delta.
+
+        Returns:
+            dict - Dictionary diff for the models current state and the last load.
         '''
         local_diff = {}
 
@@ -153,9 +166,14 @@ class RestModel(six.with_metaclass(RestModelBase)):
 
             # 1. Primitives
             if value_type in primitives:
+                cleaned_value = value
+                # Checks if we need to prepare the data
+                if key in getattr(getattr(value, '_meta', None), 'fields', {}):
+                    cleaned_value = value._meta.fields[key].clean(value)
+
                 # If the value of the field is not what we've seen before, add it to the diff
                 if ref != value:
-                    local_diff[key] = value
+                    local_diff[key] = cleaned_value
 
             # 2/3. Objects
             else:
