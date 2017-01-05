@@ -92,7 +92,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
             setattr(
                 self,
                 name,
-                self.__class__.objects.get_queryset_class(
+                field.to.objects.get_queryset_class(
                     url='/'.join([self.get_absolute_url().rstrip('/'), field.url, ''])
                 )
             )

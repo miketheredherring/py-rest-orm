@@ -40,9 +40,14 @@ class RestModelTestCase(TestCase):
         gene = Gene.objects.get(ens_gene='ENSG00000011295')
         self.assertEqual(gene.ens_gene, 'ENSG00000011295')
 
-    def test_restmodel_relatedfield(self):
+    def test_restmodel_relatedfield_count(self):
         gene = Gene.objects.get(ens_gene='ENSG00000011295')
         self.assertEqual(gene.variants.count(), 404)
+
+    def test_restmodel_relatedfield_filter(self):
+        gene = Gene.objects.get(ens_gene='ENSG00000011295')
+        variant = gene.variants.all()[0]
+        self.assertTrue(bool(variant.slug))
 
     def test_count(self):
         queryset = Gene.objects.all()
