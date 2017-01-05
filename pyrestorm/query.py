@@ -38,7 +38,7 @@ class RestQueryset(object):
             self._paginator = model._meta.paginator_class()
         # REST Client for performing API calls
         self.client = self.model.get_client()
-        self.url = kwargs.pop('url', '/'.join([self.model._meta.url, '']))
+        self.url = kwargs.pop('url', self.model.get_base_url())
 
     # 1) Iteration
     def __iter__(self):

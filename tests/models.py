@@ -15,6 +15,7 @@ class Author(object):
 
 class Post(RestModel):
     class Meta:
+        append_slash = False
         url = 'http://jsonplaceholder.typicode.com/posts'
 
     id = IntegerField()

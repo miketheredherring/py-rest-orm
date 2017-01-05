@@ -15,7 +15,7 @@ class RestQuerysetTestCase(TestCase):
 
     def test_len(self):
         queryset = RestQueryset(Post)
-        self.assertEqual(len(queryset), 101)
+        self.assertEqual(len(queryset), 100)
 
     def test_repr(self):
         queryset = RestQueryset(Post)

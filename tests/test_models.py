@@ -22,7 +22,7 @@ class RestModelTestCase(TestCase):
 
     def test_restmodel_all(self):
         instances = Post.objects.all()
-        self.assertEqual(len(instances), 101)
+        self.assertEqual(len(instances), 100)
 
     def test_restmodel_filter(self):
         genes = Gene.objects.filter(ens_gene='ENSG00000011295')
