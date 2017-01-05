@@ -110,7 +110,7 @@ class OneToManyField(RelatedField):
                 url = 'https://api.genepeeks.com/subjects/'
             genes = RelatedModelField(Gene, route='genes')
 
-    `subject.genes` would hit: https://api.genepeeks.com/subjects/genes/
+    `subject.genes` would hit: https://api.genepeeks.com/subjects/<id>/genes/
     '''
     def __init__(self, to, *args, **kwargs):
         self.to = to
