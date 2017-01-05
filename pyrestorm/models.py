@@ -2,7 +2,7 @@ import copy
 import six
 
 from pyrestorm.client import RestClient
-from pyrestorm.fields import Field
+from pyrestorm.fields import Field, RelatedField
 from pyrestorm.exceptions import orm as orm_exceptions
 from pyrestorm.manager import RestOrmManager
 
@@ -28,11 +28,20 @@ class RestModelBase(type):
         new_class = super_new(cls, name, bases, attrs)
         new_class._meta = attrs.pop('Meta', None)
 
+        # Check if user is overriding URL scheme
+        if not hasattr(new_class._meta, 'slug_field'):
+            new_class._meta.slug_field = 'id'
+
         # Binds `Field` instances to the meta class for validation
         new_class._meta.fields = {}
+        new_class._meta.related_fields = {}
         for name in attrs.keys():
             if isinstance(attrs[name], Field):
                 new_class._meta.fields[name] = attrs.pop(name)
+                # Keep track of `RelatedFields` specially
+                if isinstance(new_class._meta.fields[name], RelatedField):
+                    new_class._meta.related_fields[name] = new_class._meta.fields[name]
+                    new_class._meta.related_fields[name].configure(new_class, name)
 
         # Clean the incoming data, URL should not contain trailing slash for proper assembly
         new_class._meta.url = new_class._meta.url.rstrip('/')
@@ -48,10 +57,6 @@ class RestModelBase(type):
         # Django attributes(Doesn't hurt to have them)
         new_class._meta.model_name = new_class.__name__
         new_class._meta.app_label = new_class.__module__.split('.')[-1]
-
-        # Check if user is overriding URL scheme
-        if not hasattr(new_class._meta, 'slug_field'):
-            new_class._meta.slug_field = 'id'
 
         # Instantiate the manager instance
         new_class.objects = new_class.objects()
@@ -81,6 +86,16 @@ class RestModel(six.with_metaclass(RestModelBase)):
 
         # Bind data to the model
         self._bind_data(self, data_to_bind)
+
+        # Bind to the name of the field a `RestQueryset` of the correct type
+        for name, field in self._meta.related_fields.iteritems():
+            setattr(
+                self,
+                name,
+                self.__class__.objects.get_queryset_class(
+                    url='/'.join([self.get_absolute_url().rstrip('/'), field.url, ''])
+                )
+            )
 
     # Manager to act like Django ORM
     objects = RestOrmManager

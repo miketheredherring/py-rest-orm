@@ -15,7 +15,7 @@ class RestQuerysetTestCase(TestCase):
 
     def test_len(self):
         queryset = RestQueryset(Post)
-        self.assertEqual(len(queryset), 100)
+        self.assertEqual(len(queryset), 101)
 
     def test_repr(self):
         queryset = RestQueryset(Post)
@@ -39,6 +39,10 @@ class RestQuerysetTestCase(TestCase):
 class RestPaginatedQuerysetTestCase(TestCase):
     def test_init(self):
         RestQueryset(Gene)
+
+    def test_index(self):
+        gene = RestQueryset(Gene)[40]
+        self.assertTrue(isinstance(gene, Gene))
 
     def test_slice(self):
         genes = RestQueryset(Gene)[0:40]

@@ -38,6 +38,7 @@ class RestQueryset(object):
             self._paginator = model._meta.paginator_class()
         # REST Client for performing API calls
         self.client = self.model.get_client()
+        self.url = kwargs.pop('url', '/'.join([self.model._meta.url, '']))
 
     # 1) Iteration
     def __iter__(self):
@@ -50,7 +51,10 @@ class RestQueryset(object):
             self._evaluate(value.start, value.stop)
         # If it is a single element, fetch just that
         elif isinstance(value, int):
-            self._data = self._evaluate(value, value + 1)[0]
+            if hasattr(self, '_paginator'):
+                self._data = self._evaluate(value, value + 1)[0]
+            else:
+                self._data = self._evaluate()[value]
 
         return self._data
 
@@ -61,7 +65,7 @@ class RestQueryset(object):
     # Returns an identical copy of self
     def _clone(self):
         # New copy of RestQueryset
-        clone = self.__class__(model=self.model, query=copy.deepcopy(self.query))
+        clone = self.__class__(model=self.model, query=copy.deepcopy(self.query), url=self.url)
 
         # Return to the user
         return clone
@@ -86,7 +90,7 @@ class RestQueryset(object):
     # Unpaginated API results, only stale once
     def _fetch(self):
         # Retrieve data from the server
-        response = self.client.get('/'.join([self.model._meta.url, '']), **self._get_query_params())
+        response = self.client.get(self.url, **self._get_query_params())
         self._data = [self.model(_json=item) for item in response]
         self._count = len(self._data)
         return self._data
@@ -104,7 +108,7 @@ class RestQueryset(object):
         fetch = True
         while fetch:
             # Retrieve data from the server
-            response = self.client.get('/'.join([self.model._meta.url, '']), **self._get_query_params())
+            response = self.client.get(self.url, **self._get_query_params())
 
             # Attempt to grab the size of the dataset from the usual place
             self._paginator.set_max(response)

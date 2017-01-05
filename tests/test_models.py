@@ -22,7 +22,7 @@ class RestModelTestCase(TestCase):
 
     def test_restmodel_all(self):
         instances = Post.objects.all()
-        self.assertEqual(len(instances), 100)
+        self.assertEqual(len(instances), 101)
 
     def test_restmodel_filter(self):
         genes = Gene.objects.filter(ens_gene='ENSG00000011295')
@@ -40,6 +40,10 @@ class RestModelTestCase(TestCase):
         gene = Gene.objects.get(ens_gene='ENSG00000011295')
         self.assertEqual(gene.ens_gene, 'ENSG00000011295')
 
+    def test_restmodel_relatedfield(self):
+        gene = Gene.objects.get(ens_gene='ENSG00000011295')
+        self.assertEqual(gene.variants.count(), 404)
+
     def test_count(self):
         queryset = Gene.objects.all()
         self.assertEqual(queryset.count(), 4792)
@@ -52,6 +56,7 @@ class RestModelTestCase(TestCase):
 
     def test_restmodel_save(self):
         post = Post.objects.get(id=1)
+        post.id = 2
         post.body = [Comment(body='Are we having fun yet?'), Comment(body='Hoe about now?')]
         post.title = 'Testing'
         post.save()
