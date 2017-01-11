@@ -4,6 +4,7 @@ import six
 from pyrestorm.client import RestClient
 from pyrestorm.fields import Field, RelatedField
 from pyrestorm.exceptions import orm as orm_exceptions
+from pyrestorm.query import RestQueryset
 from pyrestorm.manager import RestOrmManager
 
 primitives = [int, str, unicode, bool, type(None)]
@@ -178,27 +179,30 @@ class RestModel(six.with_metaclass(RestModelBase)):
             if key.startswith('_') or self._get_reference_data(ref, key) == value:
                 continue
 
+            # Check if the value can be cleaned
+            cleaned_value = value
+
+            # Serializing of a `RestQueryset` is currently unsuppored since there
+            # is no public way to create one without querying, which means the data
+            # already exists on the server.
+            if isinstance(value, RestQueryset):
+                return local_diff
+
             # Determine what type the current `value` is to process one of the three cases
             value_type = type(value)
 
             # 1. Primitives
             if value_type in primitives:
-                cleaned_value = value
-                # Checks if we need to prepare the data
-                if key in getattr(getattr(value, '_meta', None), 'fields', {}):
-                    cleaned_value = value._meta.fields[key].clean(value)
-
                 # If the value of the field is not what we've seen before, add it to the diff
-                if ref != value:
+                if ref != cleaned_value:
                     local_diff[key] = cleaned_value
-
             # 2/3. Objects
             else:
                 # 2. Lists
                 if value_type == list:
                     # Process each idex of the `list`
                     local_diff[key] = []
-                    for idx, inner_value in enumerate(value):
+                    for idx, inner_value in enumerate(cleaned_value):
                         if type(inner_value) in primitives:
                             local_diff[key].append(inner_value)
                         else:
@@ -206,8 +210,8 @@ class RestModel(six.with_metaclass(RestModelBase)):
                 # 3. Object/Dictionary
                 else:
                     new_ref = self._get_reference_data(ref, key)
-                    _data = self._serialize_data(value, new_ref)
-                    if not _data and type(value) not in (primitives + non_object_types):
+                    _data = self._serialize_data(cleaned_value, new_ref)
+                    if not _data and value_type not in (primitives + non_object_types):
                         continue
                     local_diff[key] = _data
 

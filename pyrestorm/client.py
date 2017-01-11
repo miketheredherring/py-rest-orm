@@ -53,13 +53,17 @@ class RestClient(object):
         self.status_code = self._response.status_code
 
         # Handle exceptions
-        self.raise_exception(self._response.status_code)
+        self.raise_exception(self._response)
 
         # No exceptions means we should return the response
         return self.parse_response(self._response)
 
     # Codes which should not show up in a response for a valid request
-    def raise_exception(self, status_code):
+    def raise_exception(self, response):
+        status_code = response.status_code
+        content = response.content
+
+        # Process the different exceptions that could happen
         if status_code == StatusCodes.HTTP_SERVER_ERROR:
             raise ServerErrorException
         elif status_code == StatusCodes.HTTP_METHOD_NOT_ALLOWED:
