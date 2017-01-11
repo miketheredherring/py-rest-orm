@@ -89,13 +89,15 @@ class RestModel(six.with_metaclass(RestModelBase)):
 
         # Bind to the name of the field a `RestQueryset` of the correct type
         for name, field in self._meta.related_fields.iteritems():
-            setattr(
-                self,
-                name,
-                field.to.objects.get_queryset_class(
-                    url='/'.join([self.get_absolute_url().rstrip('/'), field.url, ''])
+            # Don't rebind data which already exists
+            if hasattr(self, self._meta.slug_field) is True:
+                setattr(
+                    self,
+                    name,
+                    field.to.objects.get_queryset_class(
+                        url='/'.join([self.get_absolute_url().rstrip('/'), field.url, ''])
+                    )
                 )
-            )
 
     # Manager to act like Django ORM
     objects = RestOrmManager
@@ -226,7 +228,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
 
     # Returns the URL to this resource
     def get_absolute_url(self):
-        return self.get_base_url(bits=[unicode(getattr(self, self._meta.slug_field)), ])
+        return self.get_base_url(bits=[unicode(getattr(self, self._meta.slug_field, '')), ])
 
     # Does not save nested keys
     def save(self, raise_exception=False, **kwargs):
