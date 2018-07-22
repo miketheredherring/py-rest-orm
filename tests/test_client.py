@@ -1,3 +1,4 @@
+import mock
 from unittest import TestCase
 
 from pyrestorm.client import RestClient
