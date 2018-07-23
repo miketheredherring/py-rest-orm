@@ -103,6 +103,10 @@ class RestModel(six.with_metaclass(RestModelBase)):
     # Manager to act like Django ORM
     objects = RestOrmManager
 
+    @property
+    def slug(self):
+        return getattr(self, self._meta.slug_field)
+
     #  DJANGO COMPATABILITY
 
     def serializable_value(self, value):

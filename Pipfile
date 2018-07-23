@@ -10,6 +10,8 @@ mock = "*"
 [packages]
 requests = "*"
 six = "==1.10.0"
+mock = "*"
+tox-pipenv = "*"
 
 [requires]
 python_version = "2.7"

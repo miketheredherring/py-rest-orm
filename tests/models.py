@@ -24,6 +24,7 @@ class Post(RestModel):
 class Variant(RestModel):
     class Meta:
         paginator_class = DjangoRestFrameworkLimitOffsetPaginator
+        slug_field = 'ilocus'
         url = 'https://api.genepeeks.com/variants/'
 
 

@@ -42,7 +42,7 @@ class RestModelTestCase(TestCase):
 
     def test_restmodel_relatedfield_count(self):
         gene = Gene.objects.get(ens_gene='ENSG00000011295')
-        self.assertEqual(gene.variants.count(), 404)
+        self.assertEqual(gene.variants.count(), 781)
 
     def test_restmodel_relatedfield_filter(self):
         gene = Gene.objects.get(ens_gene='ENSG00000011295')
@@ -51,7 +51,7 @@ class RestModelTestCase(TestCase):
 
     def test_count(self):
         queryset = Gene.objects.all()
-        self.assertEqual(queryset.count(), 4792)
+        self.assertEqual(queryset.count(), 6671)
 
     def test_restmodel_get_doesnotexist(self):
         self.assertRaises(Gene.DoesNotExist, Gene.objects.get, ens_gene='ENSG00000011295\u2019')

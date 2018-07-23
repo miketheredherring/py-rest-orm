@@ -25,9 +25,15 @@ class RestClientTestCase(TestCase):
             (400, exceptions.http.BadRequestException),
         )
 
+        class MockResponse(object):
+            def __init__(self, status_code):
+                self.status_code = status_code
+                self.content = ''
+
         client = RestClient()
         for code, ex in exs:
-            self.assertRaises(ex, client.raise_exception, code)
+            response = MockResponse(code)
+            self.assertRaises(ex, client.raise_exception, response)
 
     def test_get(self):
         client = RestClient()
