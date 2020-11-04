@@ -1,7 +1,7 @@
 import json
 import requests
 
-from exceptions.http import (
+from .exceptions.http import (
     ServerErrorException,
     NotFoundException,
     PermissionDeniedException,
@@ -9,7 +9,7 @@ from exceptions.http import (
     BadRequestException,
     MethodNotAllowedException
 )
-from utils import build_url
+from .utils import build_url
 
 
 class StatusCodes(object):

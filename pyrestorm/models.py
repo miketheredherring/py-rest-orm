@@ -7,7 +7,7 @@ from pyrestorm.exceptions import orm as orm_exceptions
 from pyrestorm.query import RestQueryset
 from pyrestorm.manager import RestOrmManager
 
-primitives = [int, str, unicode, bool, type(None)]
+primitives = [int, bytes, str, bool, type(None)]
 non_object_types = [dict, list, tuple]
 
 SENTINEL = '__SENTINEL__'
@@ -36,7 +36,7 @@ class RestModelBase(type):
         # Binds `Field` instances to the meta class for validation
         new_class._meta.fields = {}
         new_class._meta.related_fields = {}
-        for name in attrs.keys():
+        for name in list(attrs.keys()):
             if isinstance(attrs[name], Field):
                 new_class._meta.fields[name] = attrs.pop(name)
                 # Keep track of `RelatedFields` specially
@@ -89,7 +89,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
         self._bind_data(self, data_to_bind)
 
         # Bind to the name of the field a `RestQueryset` of the correct type
-        for name, field in self._meta.related_fields.iteritems():
+        for name, field in self._meta.related_fields.items():
             # Don't rebind data which already exists
             if hasattr(self, self._meta.slug_field) is True:
                 setattr(
@@ -125,7 +125,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
     # Bind the JSON data to the new instance
     @staticmethod
     def _bind_data(obj, data):
-        for key, val in data.iteritems():
+        for key, val in data.items():
             # Bind the data to the next level if need be
             if isinstance(val, dict):
                 # Create the class if need be, otherwise do nothing
@@ -177,7 +177,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
             obj = obj.__dict__
 
         # Check each value in the `dict` for changes
-        for key, value in obj.iteritems():
+        for key, value in obj.items():
             # 0. Private variables: SKIP
             # Escape early if nothing has changed
             if key.startswith('_') or self._get_reference_data(ref, key) == value:
@@ -236,7 +236,7 @@ class RestModel(six.with_metaclass(RestModelBase)):
 
     # Returns the URL to this resource
     def get_absolute_url(self):
-        return self.get_base_url(bits=[unicode(getattr(self, self._meta.slug_field, '')), ])
+        return self.get_base_url(bits=[str(getattr(self, self._meta.slug_field, '')), ])
 
     # Does not save nested keys
     def save(self, raise_exception=False, **kwargs):

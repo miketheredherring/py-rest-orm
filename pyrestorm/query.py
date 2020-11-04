@@ -79,7 +79,7 @@ class RestQueryset(object):
             params.update(self._paginator.as_params())
 
         # Sanatize the parameters since some Python types don't encode well
-        for key, value in self.query.params.iteritems():
+        for key, value in self.query.params.items():
             if isinstance(value, (set, frozenset)):
                 value = list(value)
             params[key] = value
@@ -123,7 +123,7 @@ class RestQueryset(object):
             self._count += count
 
             # Determine if we need to grab another round of records
-            fetch = self._paginator.next() if end is None else self._count < (end - start)
+            fetch = next(self._paginator) if end is None else self._count < (end - start)
 
         return self._data
 
@@ -160,7 +160,7 @@ class RestQueryset(object):
         instance = self.model()
 
         # Assign all of the attributes to the model
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(instance, key, value)
 
         # Persist to the API

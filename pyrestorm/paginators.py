@@ -9,7 +9,7 @@ class RestPaginator(object):
         # How many records should be retrived per request
         self.page_size = page_size
 
-    def next(self):
+    def __next__(self):
         '''Advances the cursor to the next valid location, if available.
 
         Returns:
@@ -66,7 +66,7 @@ class DjangoRestFrameworkLimitOffsetPaginator(RestPaginator):
         return super(DjangoRestFrameworkLimitOffsetPaginator, self).__init__(page_size=limit, **kwargs)
 
     # Retrieved is meant to educate the paginator on the amount of results retrieved last request
-    def next(self):
+    def __next__(self):
         if not self.page_size or not self.max:
             return False
         # If we don't know how many records there are, and we retrieved a full page last request, next could exist
@@ -101,7 +101,7 @@ class DjangoRestFrameworkLimitOffsetPaginator(RestPaginator):
 
     # Dictionary of URL params for pagination
     def as_params(self):
-        params = {'offset': unicode(self.position)}
+        params = {'offset': str(self.position)}
         if self.page_size is not None:
-            params['limit'] = unicode(self.page_size)
+            params['limit'] = str(self.page_size)
         return params
